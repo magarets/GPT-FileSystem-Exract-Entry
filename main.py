@@ -86,7 +86,7 @@ def get_Partition(f, sector):
     #print(int(raw_Data_St, 16), end="")
 
     if(raw_Data_St and raw_Data_End): # 둘 다 값이 있을때만 출력
-        print(f"{hex2bin(data_raw[0]).upper()} {int(raw_Data_St, 16)} {int(raw_Data_End, 16) - int(raw_Data_St, 16)}")
+        print(f"{hex2bin(data_raw[0]).upper()} {raw_Data_St} {int(raw_Data_End, 16) - int(raw_Data_St, 16)}")
 
 def get_Header(f, sector):
     # file move seek(1 bytes)
