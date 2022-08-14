@@ -6,11 +6,17 @@ import binascii
 import sys
 
 SECTOR_SIZE = 512
-PARTITION_SIZE = 128
+ENTRY_SIZE = 128
 SIGNATURE = 8
 HEADER_SIZE = 4
 
 FILENAME = "../gpt_128.dd"
+
+"""
+수정해야될 것
+데이터가 0이라면 아예 출력 X
+-> 전부 문자열로 넣어서 마지막에 출력하기
+"""
 
 def get_PaddingSize(st_Data, end_Data): # 비트연산을 위한 패딩함수
     if (len(st_Data) > len(end_Data)):
@@ -19,20 +25,6 @@ def get_PaddingSize(st_Data, end_Data): # 비트연산을 위한 패딩함수
         return len(end_Data)
     else:
         return len(st_Data)
-
-def get_EntrySize(st_Data, end_Data): #논리주소가 가르키는 Entry의 Size 계산
-    ## padding bytes ##
-    """
-    paddingSIZE = get_PaddingSize(st_Data, end_Data)
-
-    st_Data = '0' * (paddingSIZE - len(st_Data)) + st_Data
-    end_Data = '0' * (paddingSIZE - len(end_Data)) + end_Data
-    """
-    if(st_Data or st_Data): # 값이 없을 때 까지 출력
-        if(int(end_Data, 16) - int(st_Data, 16) == 0):
-            return 0
-        else:
-            return int(end_Data, 16) - int(st_Data, 16)
 
 def get_LBA(type):
     offset = 8
@@ -57,10 +49,16 @@ def hex2bin(rawData):
 
     return data
 
+def isDataNull(stData, endData):
+    if(stData or endData):
+        if(endData - stData <= 0):
+            return True
+        else:
+            return False
+
 def get_Partition(f, sector):
     data_raw = []
     f.seek(sector, 0) # 파일 포인터를 entry의 시작주소로 초기화
-    print(f"start offset : {f.tell()}") # 현재 entry의 상대적인 시작 위치 출력
 
     # GET Partition_Type_GUID (File System Type)
     for i in range(0, 2):
@@ -68,8 +66,8 @@ def get_Partition(f, sector):
         # print Entry
         data_raw.append(binascii.hexlify(f.read(offset))) # offset move 16 byte
         # [0] = File System Type, [1] = GUID
-    print(f"GUID: {hex2bin(data_raw[1])}") # 바이너리를 헥스로 변환
-    print(f"File System Type: {hex2bin(data_raw[0])}")
+    #print(f"{hex2bin(data_raw[0]).upper()}", end="") # 바이너리를 헥스로 변환
+    #print(f"File System Type: {hex2bin(data_raw[1]).upper()}")
 
     # get GUID
     #f.seek(offset, 1)  # 다음 출력 전으로 이동 # offset move 16 byte
@@ -79,16 +77,16 @@ def get_Partition(f, sector):
     raw_Data_St = get_LBA("st_LBA")
     # end_LBA = 8 byte #
     raw_Data_End = get_LBA("end_LBA")
+
     """
     ending LBA: raw_Data_End
     starting LBA: raw_Data_St
     """
 
-    EntrySize = get_EntrySize(raw_Data_St, raw_Data_End)
-    if(not EntrySize):
-        sys.exit()
-    print(f"Entry Size : {EntrySize}")
+    #print(int(raw_Data_St, 16), end="")
 
+    if(raw_Data_St and raw_Data_End): # 둘 다 값이 있을때만 출력
+        print(f"{hex2bin(data_raw[0]).upper()} {int(raw_Data_St, 16)} {int(raw_Data_End, 16) - int(raw_Data_St, 16)}")
 
 def get_Header(f, sector):
     # file move seek(1 bytes)
@@ -103,11 +101,10 @@ if __name__ == '__main__':
     sector = 0
 
     # get header
-    sector += 512 # move file offset
-    get_Header(f, sector) # find file system
+    sector += SECTOR_SIZE # move file offset
+    get_Header(f, sector) # find file system 88
 
     sector += 512 # start sector number : 2
-    for i in range(0, 128):
+    for i in range(0, ENTRY_SIZE):
         # find partition
         get_Partition(f, sector + (i * 128)) # entry size = 128
-        print("-" * 40)
