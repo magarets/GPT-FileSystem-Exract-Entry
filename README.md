@@ -1,9 +1,9 @@
 # GPT-FileSystem-Exract-Entry
 
-* Sector SIZE: 512 byte
-* Storage infomation for each sector
-#1: MBR 
-#2: GPT Header
+* Sector SIZE: 512 byte<br>
+* Storage infomation for each sector<br>
+#1: MBR <br>
+#2: GPT Header<br>
 #3 ~ 34: GPT File info <br><br>
 GPT 파일 시스템에서는 하나의 섹터마다 4개의 Entry가 존재합니다.<br>
 각각의 Entry는 하나의 파일에 대한 정보를 저장하고 있습니다.<br>
